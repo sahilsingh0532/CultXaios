@@ -1,28 +1,41 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import React, { useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, ImageBackground, Animated, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-
+import Icon from 'react-native-vector-icons/FontAwesome5'; // Import the icon library
 
 const GuideScreen = () => {
   const navigation = useNavigation();
+  const { width } = Dimensions.get('window');
+  const menuWidth = width / 5;
+  const menuIcons = ['comments', 'images', 'question-circle', 'users', 'cog']; // Icon names
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const slideMenu = (toValue) => {
+    Animated.timing(slideAnim, {
+      toValue,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const navigateTo = (screen) => {
+    if (screen === 'cog') {
+      navigation.navigate('Settings'); // Navigate to the 'Settings' screen
+    } else {
+      navigation.navigate(screen);
+    }
+  };
 
   return (
     <ImageBackground source={require('./3.gif')} style={styles.background}>
-      <View style={styles.container}>
-        <TouchableOpacity onPress={() => navigation.navigate('Chats')} style={styles.button}>
-          <Text style={styles.buttonText}>Chats</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Moments')} style={styles.button}>
-          <Text style={styles.buttonText}>Moments</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('HelpAI')} style={styles.button}>
-          <Text style={styles.buttonText}>HelpAI</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('FamilyHood')} style={styles.button}>
-          <Text style={styles.buttonText}>FamilyHood</Text>
-        </TouchableOpacity>
-      </View>
+      <Animated.View style={[styles.menuContainer, { transform: [{ translateX: slideAnim }] }]}>
+        {menuIcons.map((icon, index) => (
+          <TouchableOpacity key={index} onPress={() => navigateTo(icon)} style={[styles.menuItem, { width: menuWidth }]}>
+            <Icon name={icon} size={30} color="white" />
+          </TouchableOpacity>
+        ))}
+      </Animated.View>
     </ImageBackground>
   );
 };
@@ -34,33 +47,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
+  menuContainer: {
+    position: 'absolute',
+    bottom: 0,
+    flexDirection: 'row',
     backgroundColor: 'black',
-    width: 200,
-    height: 50,
+    paddingVertical: 10,
+  },
+  menuItem: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderWidth: 2,
-    borderColor: 'blue',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'pink',
+    borderTopWidth: 2,
+    borderTopColor: 'blue',
+    borderWidth: 20,
   },
 });
 

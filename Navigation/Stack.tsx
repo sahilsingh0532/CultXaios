@@ -4,6 +4,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import Guide from '../screens/Guide';
+import Settings from '../screens/Settings';
 import { TransitionPresets } from '@react-navigation/stack';
 
 
@@ -40,8 +41,8 @@ const StackNavigator = () => {
         }}
       />
       <Stack.Screen name="Guide" component={Guide} />
-   
-      {/* Add more screens here */}
+      <Stack.Screen name="Settings" component={Settings} />
+      {/* Add other screens here */}
       
     </Stack.Navigator>
   );
