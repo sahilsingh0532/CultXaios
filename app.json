@@ -15,10 +15,15 @@
       "**/*"
     ],
     "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to your camera to allow you to upload profile pictures.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to allow you to upload profile pictures."
+      },
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
+        "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"],
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
