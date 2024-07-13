@@ -20,8 +20,10 @@ const GuideScreen = () => {
   };
 
   const navigateTo = (screen) => {
-    if (screen === 'cog') {
-      navigation.navigate('Settings'); // Navigate to the 'Settings' screen
+    if (screen === 'comments') {
+      navigation.navigate('ChatList'); 
+    } else if (screen === 'cog') {
+      navigation.navigate('Settings'); 
     } else {
       navigation.navigate(screen);
     }

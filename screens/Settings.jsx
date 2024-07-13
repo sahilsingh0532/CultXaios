@@ -1,25 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, TextInput, Modal, TouchableWithoutFeedback, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
+import { ThemeContext } from './ThemeContext';
 
-const Settings = () => {
-  const [darkMode, setDarkMode] = useState(false);
+const Settings = ({ navigation }) => {
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [showNamePopup, setShowNamePopup] = useState(false);
   const [name, setName] = useState('');
   const [storedName, setStoredName] = useState('');
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    // Load settings from Firestore on component mount
     const loadSettings = async () => {
-      // Load dark mode setting from Firestore
       const darkModeSetting = await firebase.firestore().collection('Settings').doc('darkMode').get();
       setDarkMode(darkModeSetting.data()?.enabled || false);
 
-      // Load name from AsyncStorage
       try {
         const storedName = await AsyncStorage.getItem('name');
         if (storedName !== null) {
@@ -31,12 +30,6 @@ const Settings = () => {
     };
     loadSettings();
   }, []);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // Update dark mode setting in Firestore
-    firebase.firestore().collection('settings').doc('darkMode').set({ enabled: !darkMode });
-  };
 
   const handleNameChange = (text) => {
     setName(text);
@@ -64,47 +57,72 @@ const Settings = () => {
   };
 
   const navigateToCreditScore = () => {
-    // Replace 'https://www.policybazaar.com/credit-score/' with the actual URL for credit score website
-    Linking.openURL('https://creditreport.paisabazaar.com/credit-report/apply?utm_source=google_search&utm_medium=ppc0paisabazaar&utm_term=credit%20score&utm_campaign=LS_Top3Kw_Phrase_13thApr2200Credit_Score&utm_network=g&utm_matchtype=p&utm_device=c&utm_placement=&utm_content=676846002668&utm_Adposition=&utm_location=9302159&utm_Sitelink=&utm_Audience=kwd-10124391&utm_Promotion=&utm_Price=&utm_campaignid=20646528617&gad_source=1&gclid=Cj0KCQjwwYSwBhDcARIsAOyL0fiNcO0qnMlxITkJaycxZuKYCU01XY179c-0CxUuZCh2EOu_qRgPYBQaArlNEALw_wcB');
+    Linking.openURL('https://creditreport.paisabazaar.com/credit-report/apply');
+  };
+
+  const navigateToProfile = () => {
+    navigation.navigate('ProfileScreen');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear();
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('Error during logout:', error.message);
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, darkMode && styles.darkContainer]}>
       <ImageBackground source={require('./4.gif')} style={styles.backgroundImage}>
         {storedName !== '' && (
           <View style={styles.upperHalf}>
-            <Text style={styles.greetingText}>Hello,</Text>
-            <Text style={styles.usernameText}>{storedName}</Text>
+            <Text style={[styles.greetingText, darkMode && styles.darkText]}>Hello,</Text>
+            <Text style={[styles.usernameText, darkMode && styles.darkText]}>{storedName}</Text>
+            <View style={styles.emailContainer}>
+              <Text style={[styles.emailLabel, darkMode && styles.darkText]}>Email:</Text>
+              <Text style={[styles.emailText, darkMode && styles.darkText]}>{email}</Text>
+            </View>
           </View>
         )}
       </ImageBackground>
-      <View style={[styles.lowerHalf, darkMode ? styles.darkMode : null]}>
+      <View style={[styles.lowerHalf, darkMode && styles.darkMode]}>
         <TouchableOpacity style={styles.settingButton} onPress={() => setShowNamePopup(true)}>
-          <Text style={[styles.settingButtonText, darkMode && styles.darkModeText]}>Name</Text>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>Name</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingButton} onPress={handleLocationClick}>
-          <Text style={[styles.settingButtonText, darkMode && styles.darkModeText]}>Location</Text>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>Location</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingButton} onPress={toggleDarkMode}>
-          <Text style={[styles.settingButtonText, darkMode && { color: 'white' }]}>{darkMode ? 'Light Mode' : 'Dark Mode'}</Text>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingButton} onPress={navigateToCreditScore}>
-          <Text style={[styles.settingButtonText, darkMode && styles.darkModeText]}>Show Credit Score</Text>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>Show Credit Score</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.settingButton} onPress={navigateToProfile}>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>Edit Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.settingButton} onPress={handleLogout}>
+          <Text style={[styles.settingButtonText, darkMode && styles.darkText]}>Logout</Text>
         </TouchableOpacity>
       </View>
       <Modal visible={showNamePopup} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setShowNamePopup(false)}>
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Enter Your Name</Text>
+            <View style={[styles.modalContent, darkMode && styles.darkModalContent]}>
+              <Text style={[styles.modalTitle, darkMode && styles.darkText]}>Enter Your Name</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, darkMode && styles.darkInput]}
                 placeholder="Your Name"
+                placeholderTextColor={darkMode ? '#ccc' : '#000'}
                 value={name}
                 onChangeText={handleNameChange}
               />
-              <TouchableOpacity style={styles.submitButton} onPress={handleNameSubmit}>
-                <Text style={styles.submitButtonText}>Submit</Text>
+              <TouchableOpacity style={[styles.submitButton, darkMode && styles.darkSubmitButton]} onPress={handleNameSubmit}>
+                <Text style={[styles.submitButtonText, darkMode && styles.darkText]}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -117,6 +135,9 @@ const Settings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  darkContainer: {
+    backgroundColor: '#000',
   },
   backgroundImage: {
     flex: 1,
@@ -147,6 +168,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  emailContainer: {
+    flexDirection: 'row',
+  },
+  emailLabel: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  emailText: {
+    fontSize: 16,
+    color: '#fff',
+    marginLeft: 5,
+  },
   settingButton: {
     paddingVertical: 15,
     borderBottomWidth: 1,
@@ -157,11 +190,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  darkText: {
+    color: '#fff',
+  },
   darkMode: {
     backgroundColor: '#000',
-  },
-  darkModeText: {
-    color: '#fff',
   },
   modalOverlay: {
     flex: 1,
@@ -170,16 +203,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'blue',
+    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
     width: '80%',
+  },
+  darkModalContent: {
+    backgroundColor: '#333',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#fff',
+    color: '#000',
   },
   input: {
     borderWidth: 1,
@@ -187,16 +223,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    color: '#000',
+  },
+  darkInput: {
+    borderColor: '#555',
     color: '#fff',
   },
   submitButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#4caf50',
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: 'center',
   },
+  darkSubmitButton: {
+    backgroundColor: '#2e7d32',
+  },
   submitButtonText: {
-    color: 'blue',
+    color: '#fff',
     fontWeight: 'bold',
   },
 });
